@@ -7,7 +7,7 @@ import { ManufacturersModule } from './manufacturers/manufacturers.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb+srv://Dezina:dzi123**@cluster0-sosgh.mongodb.net/nestJs-mongodb?retryWrites=true&w=majority', {
+    MongooseModule.forRoot(process.env.MONGODB_URL, {
       //useNewUrlParser: true,
       //useUnifiedTopology: true,
     }),
