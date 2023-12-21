@@ -3,12 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Car } from './car.model';
 import { CreateCarDto } from './create-car.dto';
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
+import { ApiResponse } from 'src/interfaces/api-response';
 
 @Injectable()
 export class CarsService {

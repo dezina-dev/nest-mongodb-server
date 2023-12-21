@@ -2,12 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { CarsService } from './cars.service';
 import { Car } from './car.model';
 import { CreateCarDto } from './create-car.dto';
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
+import { ApiResponse } from 'src/interfaces/api-response';
 
 @Controller('cars')
 export class CarsController {

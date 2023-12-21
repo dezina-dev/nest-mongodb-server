@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "tsc-watch --onSuccess \"node dist/main.js\""
+    "start": "nest start --watch",
+    "start:dev": "nest start --watch"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
