@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
 import { User } from './user.model';
 import { ApiResponse } from 'src/interfaces/api-response';
+import { ServiceExceptionFilter } from 'src/exception-filters/exception-filter';
 
+@UseFilters(new ServiceExceptionFilter())
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) { }

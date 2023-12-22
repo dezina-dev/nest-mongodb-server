@@ -32,7 +32,7 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Whats here?
+## What's here?
 - User, Post & Comment relations
     ```bash
         The User model has an array of posts and an array of comments, where each item in the array is an ObjectId referencing the corresponding Post or Comment document.
@@ -43,6 +43,8 @@ $ npm run test:cov
 
         The Comment model has ObjectId references to both the User who made the comment and the Post on which the comment is made.
     ```
+- User signup, login, get new refresh-token
+- Create post, add comments to post, get post & its comments
     
 ## License
 

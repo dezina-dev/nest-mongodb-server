@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Comment } from './comment.model';
 import { CommentDto } from './comment.dto';
 import { ApiResponse } from 'src/interfaces/api-response';
+import { ServiceExceptionFilter } from 'src/exception-filters/exception-filter';
 
+@UseFilters(new ServiceExceptionFilter())
 @Injectable()
 export class CommentService {
   constructor(

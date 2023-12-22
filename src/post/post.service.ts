@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, Document, ObjectId } from 'mongoose';
 import { Posts } from './post.model';
 // import { Comment } from 'src/comment/comment.model';
 import { ApiResponse } from 'src/interfaces/api-response';
+import { ServiceExceptionFilter } from 'src/exception-filters/exception-filter';
 
 // interface PostWithComments {
 //   title: string;
@@ -13,6 +14,7 @@ import { ApiResponse } from 'src/interfaces/api-response';
 //   comments: (Document<unknown, {}, Comment> & Comment & { _id: ObjectId; })[];
 // }
 
+@UseFilters(new ServiceExceptionFilter())
 @Injectable()
 export class PostService {
   constructor(
