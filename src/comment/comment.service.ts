@@ -9,7 +9,7 @@ import { ApiResponse } from 'src/interfaces/api-response';
 export class CommentService {
   constructor(
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>
-  ) {}
+  ) { }
 
   async create(commentDto: CommentDto): Promise<ApiResponse<Comment>> {
     try {
@@ -44,10 +44,10 @@ export class CommentService {
   async findOne(id: string): Promise<ApiResponse<Comment>> {
     try {
       const comment = await this.commentModel.findById(id)
-      .populate('user', 'username')
-      .populate('post', 'title content')
-      .exec();
-        
+        .populate('commentBy', 'username')
+        .populate('post', 'title content')
+        .exec();
+
       if (!comment) {
         throw new NotFoundException('Comment not found');
       }
@@ -63,7 +63,7 @@ export class CommentService {
       const updatedComment = await this.commentModel
         .findByIdAndUpdate(id, commentDto, { new: true })
         .exec();
-        
+
       if (!updatedComment) {
         throw new NotFoundException('Comment not found');
       }
@@ -77,7 +77,7 @@ export class CommentService {
   async delete(id: string): Promise<ApiResponse<Comment | null>> {
     try {
       const deletedComment = await this.commentModel.findByIdAndDelete(id).lean().exec();
-      
+
       if (!deletedComment) {
         throw new NotFoundException('Comment not found');
       }
@@ -88,13 +88,30 @@ export class CommentService {
     }
   }
 
-  async findAllByPost(postId: string): Promise<ApiResponse<Comment[]>> {
+  async getPostComments(postId: string): Promise<ApiResponse<Comment[]>> {
     try {
-      const allPostComments = await this.commentModel.find({ post: new Types.ObjectId(postId) }).exec();
+      const allPostComments = await this.commentModel
+        .find({ post: new Types.ObjectId(postId) })
+        .populate('commentBy', 'username')
+        .select('-post') // Exclude the 'post' field
+        .exec();
+
+      const getPost = await this.commentModel
+        .find({ post: new Types.ObjectId(postId) })
+        .populate({
+          path: 'post',
+          populate: {
+            path: 'user',
+            select: 'username', // Include the fields you want for the user data
+          },
+        })
+        .limit(1)
+        .exec();
+
       if (!allPostComments) {
         throw new NotFoundException('No comments found for the specified post');
       }
-      return { success: true, message: '', data: allPostComments };
+      return { success: true, message: '', data: allPostComments, post: getPost[0]?.post };
     } catch (error) {
       throw new NotFoundException('No comments found for the specified post');
     }

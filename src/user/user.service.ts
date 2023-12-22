@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import * as jwt from 'jsonwebtoken';
 import { User } from './user.model';
 import { ApiResponse } from 'src/interfaces/api-response';
 
@@ -9,9 +10,38 @@ export class UserService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) { }
 
   async create(userDto: Partial<User>): Promise<ApiResponse<User>> {
-    const createdUser = new this.userModel(userDto);
+    const existingUser = await this.userModel.findOne({ email: userDto.email }).exec();
+    if (existingUser) {
+      return { success: false, message: 'User with this email already exists', data: null };
+    }
+
+    const hashedPassword = await User.hashPassword(userDto.password);
+
+    const createdUser = new this.userModel({ ...userDto, password: hashedPassword });
+
     const savedUser = await createdUser.save();
-    return { success: true, message: 'User created successfully', data: savedUser };
+    return { success: true, message: 'User registered successfully', data: savedUser };
+  }
+
+  async login(credentials: { email: string; password: string }): Promise<ApiResponse<User>> {
+    const { email, password } = credentials;
+    const user = await this.userModel.findOne({ email }).exec();
+
+    if (!user || !(await User.comparePassword(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const accessToken = this.generateAccessToken(user);
+    const refreshToken = this.generateRefreshToken(user);
+
+    user.accessToken = accessToken;
+    user.refreshToken = refreshToken;
+
+    const savedUser = await user.save();
+
+    const result = await this.userModel.findById(savedUser._id).select('-password').exec();
+
+    return { success: true, data: result };
   }
 
   async update(id: string, userDto: Partial<User>): Promise<ApiResponse<User>> {
@@ -46,4 +76,44 @@ export class UserService {
       return { success: false, message: 'Failed to retrieve user', data: null };
     }
   }
+
+  private generateAccessToken(user: User): string {
+    const accessTokenSecret = process.env.SECRET_KEY
+
+    const expiresIn = '1h';
+    return jwt.sign({ userId: user._id }, accessTokenSecret, { expiresIn });
+  }
+
+  private generateRefreshToken(user: User): string {
+    const refreshTokenSecret = process.env.SECRET_KEY
+    const expiresIn = '7d';
+    return jwt.sign({ userId: user._id }, refreshTokenSecret, { expiresIn });
+  }
+
+  async verifyRefreshToken(refreshToken: string): Promise<User | null> {
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY);
+      const userId = (decoded as any).userId;
+      return this.userModel.findById(userId).exec();
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async generateAndSignRefreshToken(user: User): Promise<ApiResponse<User>> {
+    try {
+      const refreshToken = this.generateRefreshToken(user);
+
+      user.refreshToken = refreshToken;
+
+      const savedUser = await user.save();
+
+      const result = await this.userModel.findById(savedUser._id).select('-password -accessToken').exec();
+
+      return { success: true, data: result };
+    } catch (error) {
+      return { success: false, message: 'Failed to generate and sign refresh token', data: null };
+    }
+  }
+
 }

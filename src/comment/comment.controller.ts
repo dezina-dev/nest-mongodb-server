@@ -31,7 +31,7 @@ export class CommentController {
 
   @Get('post/:postId')
   async findAllByPost(@Param('postId') postId: string): Promise<ApiResponse<Comment[]>> {
-    return this.commentService.findAllByPost(postId);
+    return this.commentService.getPostComments(postId);
   }
   
   @Get()

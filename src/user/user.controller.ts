@@ -1,15 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UnauthorizedException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.model';
 import { ApiResponse } from 'src/interfaces/api-response';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Post()
+  @Post('signup')
   async create(@Body() userDto: Partial<User>): Promise<ApiResponse<User>> {
     return this.userService.create(userDto);
+  }
+
+  @Post('login')
+  async login(@Body() credentials: { email: string; password: string }): Promise<ApiResponse<User>> {
+    try {
+      return this.userService.login(credentials);
+    } catch (error) {
+      return { success: false, message: 'Login failed', data: null };
+    }
   }
 
   @Patch(':id')
@@ -31,4 +40,22 @@ export class UserController {
   async findAll(): Promise<ApiResponse<User[]>> {
     return this.userService.findAll();
   }
+
+  @Post('refresh-token')
+  async refreshTokens(@Body() body: { refreshToken: string }): Promise<ApiResponse<{ refreshToken: string }>> {
+    try {
+      const { refreshToken } = body;
+      const user = await this.userService.verifyRefreshToken(refreshToken);
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      return this.userService.generateAndSignRefreshToken(user);
+
+    } catch (error) {
+      throw new UnauthorizedException('Failed to refresh tokens');
+    }
+  }
+
 }
