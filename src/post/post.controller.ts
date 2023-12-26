@@ -1,21 +1,11 @@
-import { Document, ObjectId } from 'mongoose';
-import { Comment } from 'src/comment/comment.model';
 import { Posts } from './post.model';
 import { ApiResponse } from 'src/interfaces/api-response';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { PostService } from './post.service';
 
-// interface PostWithComments {
-//   title: string;
-//   content: string;
-//   user: string;
-//   _id: any;
-//   comments: (Document<unknown, {}, Comment> & Comment & { _id: ObjectId; })[];
-// }
-
 @Controller('posts')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(private readonly postService: PostService) { }
 
   @Post()
   async create(@Body() postDto: Partial<Posts>): Promise<ApiResponse<Posts>> {

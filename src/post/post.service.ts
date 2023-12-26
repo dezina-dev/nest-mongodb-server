@@ -2,24 +2,16 @@ import { Injectable, NotFoundException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, Document, ObjectId } from 'mongoose';
 import { Posts } from './post.model';
-// import { Comment } from 'src/comment/comment.model';
+import { Comment } from 'src/comment/comment.model';
 import { ApiResponse } from 'src/interfaces/api-response';
 import { ServiceExceptionFilter } from 'src/exception-filters/exception-filter';
-
-// interface PostWithComments {
-//   title: string;
-//   content: string;
-//   user: string;
-//   _id: any;
-//   comments: (Document<unknown, {}, Comment> & Comment & { _id: ObjectId; })[];
-// }
 
 @UseFilters(new ServiceExceptionFilter())
 @Injectable()
 export class PostService {
   constructor(
     @InjectModel(Posts.name) private readonly postModel: Model<Posts>,
-    // @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
+    @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
   ) { }
 
   async create(postDto: Partial<Posts>): Promise<ApiResponse<Posts>> {
@@ -62,37 +54,28 @@ export class PostService {
   async findAll(): Promise<ApiResponse<Posts[]>> {
     try {
       const posts = await this.postModel.find().populate('user').exec();
-      return { success: true, message: '', data: posts };
+      return { success: true, data: posts };
     } catch (error) {
       return { success: false, message: 'Failed to retrieve posts', data: null };
     }
   }
 
-  // async findOne(id: string): Promise<ApiResponse<PostWithComments>> {
-  //   try {
-  //     const post = await this.postModel.findById(id).exec();
-  //     if (!post) {
-  //       throw new NotFoundException('Post not found');
-  //     }
-
-  //     const comments = await this.commentModel.find({ post: new Types.ObjectId(id) }).exec();
-
-  //     const postWithComments: PostWithComments = { ...post.toObject(), comments };
-
-  //     return { success: true, message: '', data: postWithComments };
-  //   } catch (error) {
-  //     return { success: false, message: 'Failed to retrieve post with comments', data: null };
-  //   }
-  // }
   async findOne(id: string): Promise<ApiResponse<Posts>> {
     try {
-      const post = await this.postModel.findById(id).populate('user').exec();
+      const post = await this.postModel.findById(id).exec();
       if (!post) {
         throw new NotFoundException('Post not found');
       }
-      return { success: true, message: '', data: post };
+
+      const comments = await this.commentModel.find({ post: new Types.ObjectId(id) }).populate('commentBy', 'username').exec();
+
+      const postWithComments: any = { ...post.toObject(), comments };
+
+      return { success: true, data: postWithComments };
+
     } catch (error) {
-      return { success: false, message: 'Failed to retrieve post', data: null };
+      return { success: false, message: 'Failed to retrieve post with comments', data: null };
     }
   }
+
 }
