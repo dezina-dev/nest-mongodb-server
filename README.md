@@ -53,8 +53,6 @@ $ npm run test:cov
         Middleware functions in NestJS are executed before the route handler is called. They have access to the request and response objects and can perform actions such as logging, modifying the request or response, or terminating the request-response cycle.
         logging middleware - uses winston library, to create loggers for info, warn, error & generate log file based on the file size
 
-        AuthGuard ensures that only authenticated users can access routes
-
     ```
     - Nestjs guards
      ```bash
