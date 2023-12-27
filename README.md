@@ -45,6 +45,26 @@ $ npm run test:cov
     ```
 - User signup, login, get new refresh-token
 - Create post, add comments to post, get post & its comments
+- Nestjs middlewares
+    ```bash
+        Middleware functions in NestJS are executed before the route handler is called. They have access to the request and response objects and can perform actions such as logging, modifying the request or response, or terminating the request-response cycle.
+
+        (middlewares/logging.middleware.ts) LoggingMiddleware logs information about each incoming request.
+        Middleware functions in NestJS are executed before the route handler is called. They have access to the request and response objects and can perform actions such as logging, modifying the request or response, or terminating the request-response cycle.
+        logging middleware - uses winston library, to create loggers for info, warn, error & generate log file based on the file size
+
+        AuthGuard ensures that only authenticated users can access routes
+
+    ```
+    - Nestjs guards
+     ```bash
+        Guards determine whether a given request should be handled by the route handler. They are used for authentication, authorization, and input validation.
+
+        (guards/auth.guard.ts) AuthGuard verifies the authenticity of a user's authentication token. It checks whether a JWT token is present in the request headers and if the token is valid
+
+        AuthGuard ensures that only authenticated users can access routes
+
+    ```
     
 ## License
 
