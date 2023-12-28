@@ -53,8 +53,21 @@ export class PostService {
 
   async findAll(): Promise<ApiResponse<Posts[]>> {
     try {
-      const posts = await this.postModel.find().populate('user').exec();
-      return { success: true, data: posts };
+      const posts = await this.postModel.find().populate('user', 'username').exec();
+
+    // Populate comments for each post
+    const postsWithComments = await Promise.all(
+      posts.map(async (post) => {
+        const comments = await this.commentModel
+          .find({ post: new Types.ObjectId(post._id) })
+          .populate('commentBy', 'username')
+          .exec();
+
+        return { ...post.toObject(), comments };
+      })
+    );
+
+    return { success: true, data: postsWithComments };
     } catch (error) {
       return { success: false, message: 'Failed to retrieve posts', data: null };
     }
@@ -62,7 +75,7 @@ export class PostService {
 
   async findOne(id: string): Promise<ApiResponse<Posts>> {
     try {
-      const post = await this.postModel.findById(id).exec();
+      const post = await this.postModel.findById(id).populate('user', 'username').exec();
       if (!post) {
         throw new NotFoundException('Post not found');
       }
