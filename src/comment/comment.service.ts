@@ -119,4 +119,8 @@ export class CommentService {
     }
   }
 
+  async deleteOldComments(thresholdDate: Date): Promise<void> {
+    await this.commentModel.deleteMany({ commentedAt: { $lt: thresholdDate } }).exec();
+  }
+
 }

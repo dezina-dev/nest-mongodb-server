@@ -1,4 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LoggingMiddleware } from './middlewares/logging.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,6 +9,7 @@ import { ManufacturersModule } from './manufacturers/manufacturers.module';
 import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
+import { CronJobService } from './cron/cron-job.service';
 
 @Module({
   imports: [
@@ -19,10 +21,11 @@ import { CommentModule } from './comment/comment.module';
     ManufacturersModule,
     UserModule,
     PostModule,
-    CommentModule
+    CommentModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CronJobService],
 })
 
 export class AppModule implements NestModule {

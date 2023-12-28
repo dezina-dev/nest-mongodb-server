@@ -91,4 +91,9 @@ export class PostService {
     }
   }
 
+  async deleteOldPosts(thresholdDate: Date): Promise<void> {
+   await this.postModel.deleteMany({ postedAt: { $lt: thresholdDate } }).exec();
+  }
+  
+
 }
