@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException, UseFilters } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, Document, ObjectId } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { Multer } from 'multer';
 import { Posts } from './post.model';
 import { Comment } from 'src/comment/comment.model';
 import { ApiResponse } from 'src/interfaces/api-response';
 import { ServiceExceptionFilter } from 'src/exception-filters/exception-filter';
+import { cloudinary } from 'src/utils/cloudinary.config';
+import { PostDto } from './post.dto';
 
 @UseFilters(new ServiceExceptionFilter())
 @Injectable()
@@ -14,14 +17,30 @@ export class PostService {
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
   ) { }
 
-  async create(postDto: Partial<Posts>): Promise<ApiResponse<Posts>> {
+  async create(postDto: PostDto, image?: Multer.File): Promise<ApiResponse<Posts>> {
     try {
-      const createdPost = new this.postModel(postDto);
-      const savedPost = await createdPost.save();
-      return { success: true, message: 'Post created successfully', data: savedPost };
-    }
-    catch (error) {
-      return { success: false, message: 'Failed to create post', data: null };
+      const { title, content, user } = postDto;
+
+      let imageUrl: string | undefined;
+
+      if (image) {
+        const result = await cloudinary.uploader.upload(`data:${image.mimetype};base64,${image.buffer.toString('base64')}`, {
+          resource_type: 'auto',
+        });
+
+        imageUrl = result.secure_url;
+      }
+
+      const createdPost = await this.postModel.create({ title, content, user, imageUrl });
+
+      return {
+        success: true,
+        message: 'Post created successfully',
+        data: createdPost,
+      };
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw new HttpException('Failed to create post', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -55,19 +74,19 @@ export class PostService {
     try {
       const posts = await this.postModel.find().populate('user', 'username').exec();
 
-    // Populate comments for each post
-    const postsWithComments = await Promise.all(
-      posts.map(async (post) => {
-        const comments = await this.commentModel
-          .find({ post: new Types.ObjectId(post._id) })
-          .populate('commentBy', 'username')
-          .exec();
+      // Populate comments for each post
+      const postsWithComments = await Promise.all(
+        posts.map(async (post) => {
+          const comments = await this.commentModel
+            .find({ post: new Types.ObjectId(post._id) })
+            .populate('commentBy', 'username')
+            .exec();
 
-        return { ...post.toObject(), comments };
-      })
-    );
+          return { ...post.toObject(), comments };
+        })
+      );
 
-    return { success: true, data: postsWithComments };
+      return { success: true, data: postsWithComments };
     } catch (error) {
       return { success: false, message: 'Failed to retrieve posts', data: null };
     }
@@ -92,8 +111,22 @@ export class PostService {
   }
 
   async deleteOldPosts(thresholdDate: Date): Promise<void> {
-   await this.postModel.deleteMany({ postedAt: { $lt: thresholdDate } }).exec();
+    await this.postModel.deleteMany({ postedAt: { $lt: thresholdDate } }).exec();
   }
-  
+
+  // separate api for file upload
+  async uploadImage(file: Multer.File): Promise<ApiResponse<Posts | null>> {
+    try {
+
+      const result = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString('base64')}`, {
+        resource_type: 'auto',
+      });
+
+      return { success: true, message: 'File uploaded successfully', data: result.secure_url };
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw new HttpException('Failed to upload image', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
 }

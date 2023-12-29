@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
@@ -14,7 +14,14 @@ export class UserService {
   async create(userDto: Partial<User>): Promise<ApiResponse<User>> {
     const existingUser = await this.userModel.findOne({ email: userDto.email }).exec();
     if (existingUser) {
-      return { success: false, message: 'User with this email already exists', data: null };
+      throw new HttpException(
+        {
+          success: false,
+          message: 'User with this email already exists',
+          data: null,
+        },
+        400,
+      );
     }
 
     const hashedPassword = await User.hashPassword(userDto.password);

@@ -1,8 +1,11 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, UseGuards } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { Multer } from 'multer';
 import { Posts } from './post.model';
 import { ApiResponse } from 'src/interfaces/api-response';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { PostDto } from './post.dto';
 
 @Controller('posts')
 export class PostController {
@@ -10,8 +13,10 @@ export class PostController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Body() postDto: Partial<Posts>): Promise<ApiResponse<Posts>> {
-    return this.postService.create(postDto);
+  @UseInterceptors(FilesInterceptor('image'))
+  async create(@Body() postDto: PostDto, @UploadedFiles() files: Multer.File[]): Promise<ApiResponse<Posts>> {
+    const image = files && files.length > 0 ? files[0] : undefined;
+    return this.postService.create(postDto, image);
   }
 
   @Patch(':id')
@@ -36,5 +41,12 @@ export class PostController {
   // @UseGuards(AuthGuard) // Apply the AuthGuard to this route
   async findAll(): Promise<ApiResponse<Posts[]>> {
     return this.postService.findAll();
+  }
+
+  @Post('upload-image')
+  @UseInterceptors(FilesInterceptor('image'))
+  async uploadImage(@UploadedFiles() files: Multer.File[]): Promise<ApiResponse<Posts>> {
+    const file = files[0];
+    return this.postService.uploadImage(file);
   }
 }

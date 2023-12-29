@@ -63,7 +63,14 @@ $ npm run test:cov
         AuthGuard ensures that only authenticated users can access routes
 
     ```
-    
+    - "cron" scheduling using nestjs (cron/cron-job.service.ts)
+     ```bash
+       This CronJobService in NestJS is a scheduled service that runs a cleanup job every day at midnight. It uses the @nestjs/schedule library for cron scheduling. The handleCron method is decorated with @Cron and specifies the cron expression for daily execution.
+
+       - EVERY_DAY cleanup
+	   - delete older posts & comments
+
+    ```
 ## License
 
 Nest is [MIT licensed](LICENSE).

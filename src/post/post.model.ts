@@ -12,6 +12,9 @@ export class Posts extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   user: string;
 
+  @Prop()
+  imageUrl: string;
+  
   @Prop({type: Date, default: new Date})
   postedAt: Date;
 }

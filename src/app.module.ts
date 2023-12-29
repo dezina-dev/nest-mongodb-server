@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { CronJobService } from './cron/cron-job.service';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -22,7 +23,10 @@ import { CronJobService } from './cron/cron-job.service';
     UserModule,
     PostModule,
     CommentModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
+    MulterModule.register({
+      dest: './uploads', // Set a temporary upload folder
+    }),
   ],
   controllers: [AppController],
   providers: [AppService, CronJobService],
