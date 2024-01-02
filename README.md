@@ -58,7 +58,7 @@ $ npm run test:cov
                 ])
             ],
             })
-            
+
             - in the constructor of the service where you want to use the models, inject them using @InjectModel
             constructor(
             @InjectModel(Posts.name) private readonly postModel: Model<Posts>,
@@ -98,7 +98,7 @@ $ npm run test:cov
         logging middleware - uses winston library, to create loggers for info, warn, error & generate log file based on the file size
 
     ```
-    - Nestjs guards (guards/auth.guard.ts)
+- Nestjs guards (guards/auth.guard.ts)
      ```bash
         Guards determine whether a given request should be handled by the route handler. They are used for authentication, authorization, and input validation.
 
@@ -107,7 +107,7 @@ $ npm run test:cov
         AuthGuard ensures that only authenticated users can access routes
 
     ```
-    - "cron" scheduling using nestjs (cron/cron-job.service.ts)
+- "cron" scheduling using nestjs (cron/cron-job.service.ts)
      ```bash
        - A cron job is a program that’s used to schedule tasks that are to be executed repeatedly at a specific time
        - This CronJobService in NestJS is a scheduled service that runs a cleanup job every day at midnight. It uses the @nestjs/schedule library for cron scheduling. The handleCron method is decorated with @Cron and specifies the cron expression for daily execution
