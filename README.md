@@ -58,6 +58,7 @@ $ npm run test:cov
                 ])
             ],
             })
+            
             - in the constructor of the service where you want to use the models, inject them using @InjectModel
             constructor(
             @InjectModel(Posts.name) private readonly postModel: Model<Posts>,
@@ -68,6 +69,18 @@ $ npm run test:cov
 - Inject nest.js service from another module
     ```bash
             - export that service in the module that provides it
+            @Module({
+            imports: [
+                CommentModule,
+                MongooseModule.forFeature([
+                { name: Posts.name, schema: PostSchema },
+                { name: Comment.name, schema: CommentSchema }
+                ])
+            ],
+            controllers: [PostController],
+            providers: [PostService],
+            exports: [PostService],
+            })
             
             - & inject that service in the constructor of other service to use
            constructor(
